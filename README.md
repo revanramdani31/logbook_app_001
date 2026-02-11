@@ -8,10 +8,8 @@
 - Tidak perlu mengubah struktur View sama sekali
 - Fitur baru tidak mengganggu kode yang sudah ada
 
-#### ✅ **Tidak Ada Coupling (Keterkaitan Erat)**
-- View tidak perlu tahu bagaimana history disimpan atau diformat
-- Controller tidak perlu tahu warna atau icon apa yang digunakan
-- Keduanya berkomunikasi melalui interface yang jelas
+#### ✅ **yang saya rasakan**
+mempermudah untuk mengubah nya dan ketika menambah pun jadi tau bahwa logic itu disimpan nya ya di controller dan tampilan itu di view
 
 #### ✅ **Mudah Dimodifikasi**
 - Ingin ubah format waktu? Edit `_getTime()` di Controller saja
