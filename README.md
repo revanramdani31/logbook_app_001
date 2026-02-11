@@ -1,16 +1,51 @@
-# logbook_app_001
+# LogBook App - Implementasi Single Responsibility Principle (SRP)
 
-A new Flutter project.
 
-## Getting Started
+### . **Keuntungan SRP Saat Menambah Fitur History Logger**
 
-This project is a starting point for a Flutter application.
+#### ✅ **Mudah Dikembangkan**
+- Tambahkan `_history`, `_getTime()`, dan `recentHistory` **hanya di Controller**
+- Tidak perlu mengubah struktur View sama sekali
+- Fitur baru tidak mengganggu kode yang sudah ada
 
-A few resources to get you started if this is your first Flutter project:
+#### ✅ **Tidak Ada Coupling (Keterkaitan Erat)**
+- View tidak perlu tahu bagaimana history disimpan atau diformat
+- Controller tidak perlu tahu warna atau icon apa yang digunakan
+- Keduanya berkomunikasi melalui interface yang jelas
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+#### ✅ **Mudah Dimodifikasi**
+- Ingin ubah format waktu? Edit `_getTime()` di Controller saja
+- Ingin ubah warna log? Edit `getColorForLogType()` di View saja
+- Ingin limit 10 riwayat? Edit `recentHistory` di Controller saja
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```dart
+// Contoh: Mudah mengubah limit riwayat
+List<LogEntry> get recentHistory {
+  return _history.take(10).toList(); // Ubah dari 5 ke 10
+}
+```
+
+#### ✅ **Type-Safe dengan Enum**
+```dart
+enum LogType { tambah, kurang, reset }
+
+class LogEntry {
+  final LogType type;
+  final String message;
+  final String time;
+}
+```
+- Tidak ada string hardcoded yang rawan typo
+- IDE bisa auto-complete
+- Compiler bisa catch error
+
+
+#### ✅ **Reusable (Bisa Dipakai Ulang)**
+`CounterController` bisa digunakan di:
+- Mobile app (Flutter)
+- Web app
+- Desktop app
+- CLI app
+- View yang berbeda (list view, card view, dll)
+
+---
