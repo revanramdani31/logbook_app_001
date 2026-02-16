@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import 'counter_controller.dart';
+import 'package:logbook_app_001/features/logbook/counter_controller.dart';
+import 'package:logbook_app_001/features/onboarding/onboarding_view.dart';
 
 class CounterView extends StatefulWidget {
-  const CounterView({super.key});
+  final String username;
+
+  const CounterView({super.key, required this.username});
+
   @override
   State<CounterView> createState() => _CounterViewState();
 }
@@ -21,7 +25,7 @@ class _CounterViewState extends State<CounterView> {
         return Colors.orange;
     }
   }
-  
+
   // Helper method untuk icon
   IconData getIconForLogType(LogType type) {
     switch (type) {
@@ -35,9 +39,69 @@ class _CounterViewState extends State<CounterView> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _initData();
+  }
+
+  Future<void> _initData() async {
+    await _controller.loadFromLocal();
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("LogBook: Versi SRP")),
+      appBar: AppBar(
+        title: Text("Logbook: ${widget.username}"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              // 1. Munculkan Dialog Konfirmasi
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text("Konfirmasi Logout"),
+                    content: const Text(
+                      "Apakah Anda yakin? Data yang belum disimpan mungkin akan hilang.",
+                    ),
+                    actions: [
+                      // Tombol Batal
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.pop(context), // Menutup dialog saja
+                        child: const Text("Batal"),
+                      ),
+                      // Tombol Ya, Logout
+                      TextButton(
+                        onPressed: () {
+                          // Menutup dialog
+                          Navigator.pop(context);
+
+                          // 2. Navigasi kembali ke Onboarding (Membersihkan Stack)
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const OnboardingView(),
+                            ),
+                            (route) => false,
+                          );
+                        },
+                        child: const Text(
+                          "Ya, Keluar",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
       body: Align(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -118,14 +182,18 @@ class _CounterViewState extends State<CounterView> {
           FloatingActionButton(
             heroTag: "increment",
             backgroundColor: Colors.green,
-            onPressed: () => setState(() => _controller.increment()),
+            onPressed: () => setState(
+              () => _controller.increment(),
+            ),
             child: const Icon(Icons.add),
           ),
           const SizedBox(height: 100, width: 20),
           FloatingActionButton(
             heroTag: "decrement",
             backgroundColor: Colors.red,
-            onPressed: () => setState(() => _controller.decrement()),
+            onPressed: () => setState(
+              () => _controller.decrement(),
+            ),
             child: const Icon(Icons.remove),
           ),
           const SizedBox(height: 100, width: 20),
@@ -152,10 +220,12 @@ class _CounterViewState extends State<CounterView> {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: const Text("hitungan telah berhasil di-reset!"),
+                              content: const Text(
+                                "hitungan telah berhasil di-reset!",
+                              ),
                               backgroundColor: Colors.orange,
                               duration: const Duration(seconds: 2),
-                              behavior: SnackBarBehavior.floating, 
+                              behavior: SnackBarBehavior.floating,
                             ),
                           );
                         },
