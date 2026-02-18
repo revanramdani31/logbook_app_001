@@ -41,12 +41,10 @@ class _CounterViewState extends State<CounterView> {
   @override
   void initState() {
     super.initState();
-    _initData();
-  }
-
-  Future<void> _initData() async {
-    await _controller.loadFromLocal();
-    setState(() {});
+    // Memuat data spesifik milik user yang sedang login
+    _controller.loadData(widget.username).then((_) {
+      setState(() {});
+    });
   }
 
   @override
@@ -58,7 +56,6 @@ class _CounterViewState extends State<CounterView> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              // 1. Munculkan Dialog Konfirmasi
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
@@ -68,19 +65,13 @@ class _CounterViewState extends State<CounterView> {
                       "Apakah Anda yakin? Data yang belum disimpan mungkin akan hilang.",
                     ),
                     actions: [
-                      // Tombol Batal
                       TextButton(
-                        onPressed: () =>
-                            Navigator.pop(context), // Menutup dialog saja
+                        onPressed: () => Navigator.pop(context),
                         child: const Text("Batal"),
                       ),
-                      // Tombol Ya, Logout
                       TextButton(
                         onPressed: () {
-                          // Menutup dialog
                           Navigator.pop(context);
-
-                          // 2. Navigasi kembali ke Onboarding (Membersihkan Stack)
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
@@ -102,10 +93,19 @@ class _CounterViewState extends State<CounterView> {
           ),
         ],
       ),
-      body: Align(
+      body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
+            const SizedBox(height: 10),
+            Text(
+              "${_controller.getGreeting()}, ${widget.username}!",
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(255, 0, 2, 5),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 50.0,
@@ -117,7 +117,7 @@ class _CounterViewState extends State<CounterView> {
                 onChanged: (val) {
                   int? input = int.tryParse(val);
                   if (input != null) {
-                    _controller.setStep(input);
+                    _controller.setStep(input, widget.username);
                   }
                 },
                 decoration: const InputDecoration(
@@ -172,31 +172,29 @@ class _CounterViewState extends State<CounterView> {
                 );
               },
             ),
+            const SizedBox(height: 80), // Spacing untuk floating button
           ],
         ),
       ),
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 100, width: 20),
           FloatingActionButton(
             heroTag: "increment",
             backgroundColor: Colors.green,
-            onPressed: () => setState(
-              () => _controller.increment(),
-            ),
+            onPressed: () =>
+                setState(() => _controller.increment(widget.username)),
             child: const Icon(Icons.add),
           ),
-          const SizedBox(height: 100, width: 20),
+          const SizedBox(width: 16),
           FloatingActionButton(
             heroTag: "decrement",
             backgroundColor: Colors.red,
-            onPressed: () => setState(
-              () => _controller.decrement(),
-            ),
+            onPressed: () =>
+                setState(() => _controller.decrement(widget.username)),
             child: const Icon(Icons.remove),
           ),
-          const SizedBox(height: 100, width: 20),
+          const SizedBox(width: 16),
           FloatingActionButton(
             heroTag: "reset",
             backgroundColor: Colors.orange,
@@ -216,7 +214,7 @@ class _CounterViewState extends State<CounterView> {
                       ),
                       TextButton(
                         onPressed: () {
-                          setState(() => _controller.reset());
+                          setState(() => _controller.reset(widget.username));
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(

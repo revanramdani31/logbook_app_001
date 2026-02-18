@@ -41,9 +41,9 @@ class CounterController {
 
   final List<LogEntry> _history = [];
 
-  static const String _keyCounter = 'counter_value';
-  static const String _keyStep = 'step_value';
-  static const String _keyHistory = 'history_logs';
+  String _getCounterKey(String username) => '${username}_counter_value';
+  String _getHistoryKey(String username) => '${username}_history_logs';
+  String _getStepKey(String username) => '${username}_step_value';
 
   String _getTime() {
     final now = DateTime.now();
@@ -51,12 +51,47 @@ class CounterController {
     final minute = now.minute.toString().padLeft(2, '0');
     return "$hour:$minute";
   }
+  String getGreeting() {
+    final hour = DateTime.now().hour;
+
+    if (hour >= 6 && hour < 11) {
+      return "Selamat Pagi";
+    } else if (hour >= 11 && hour < 15) {
+      return "Selamat Siang";
+    } else if (hour >= 15 && hour < 18) {
+      return "Selamat Sore";
+    } else {
+      return "Selamat Malam";
+    }
+  }
 
   List<LogEntry> get recentHistory {
     return _history.take(5).toList();
   }
 
-  void increment() {
+  Future<void> saveData(String username) async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_getCounterKey(username), _counter);
+      await prefs.setInt(_getStepKey(username), _step);
+      
+      List<String> rawLogs = _history.map((log) => jsonEncode(log.toMap())).toList();
+      await prefs.setStringList(_getHistoryKey(username), rawLogs);
+    }
+
+  Future<void> loadData(String username) async {
+      final prefs = await SharedPreferences.getInstance();
+      _counter = prefs.getInt(_getCounterKey(username)) ?? 0;
+      _step = prefs.getInt(_getStepKey(username)) ?? 1;
+
+      List<String>? rawLogs = prefs.getStringList(_getHistoryKey(username));
+      _history.clear();
+      if (rawLogs != null) {
+        for (var item in rawLogs) {
+          _history.add(LogEntry.fromMap(jsonDecode(item)));
+        }
+      }
+    }
+    void increment(String username) {
     if (_step > 0) {
       _counter += _step;
       _history.insert(
@@ -67,36 +102,16 @@ class CounterController {
           time: _getTime(),
         ),
       );
-      _saveToLocal();
+      saveData(username);
     }
   }
 
-  Future<void> _saveToLocal() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_keyCounter, _counter);
-    await prefs.setInt(_keyStep, _step);
-    List<String> rawLogs = _history
-        .map((log) => jsonEncode(log.toMap()))
-        .toList();
-    await prefs.setStringList(_keyHistory, rawLogs);
+  void setStep(int newStep, String username) {
+    _step = newStep;
+    saveData(username); 
   }
 
-  Future<void> loadFromLocal() async {
-    final prefs = await SharedPreferences.getInstance();
-    _counter = prefs.getInt(_keyCounter) ?? 0;
-    _step = prefs.getInt(_keyStep) ?? 1;
-    List<String>? rawLogs = prefs.getStringList(_keyHistory);
-    if (rawLogs != null) {
-      _history.clear();
-      for (var item in rawLogs) {
-        _history.add(LogEntry.fromMap(jsonDecode(item)));
-      }
-    }
-  }
-
-  void setStep(int newStep) => _step = newStep;
-
-  void decrement() {
+  void decrement(String username) {
     if (_counter > 0) {
       _counter -= _step;
       _history.insert(
@@ -107,11 +122,11 @@ class CounterController {
           time: _getTime(),
         ),
       );
-      _saveToLocal();
+      saveData(username);
     }
   }
 
-  void reset() {
+  void reset(String username) {
     _counter = 0;
     _history.insert(
       0,
@@ -121,6 +136,6 @@ class CounterController {
         time: _getTime(),
       ),
     );
-    _saveToLocal();
+    saveData(username);
   }
 }

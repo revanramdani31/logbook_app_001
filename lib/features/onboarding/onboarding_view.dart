@@ -29,21 +29,22 @@ class _OnboardingViewState extends State<OnboardingView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+       appBar: AppBar(title: const Text("Counter Logbook")),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Menampilkan indikator step saat ini
-            Text(
-              "Halamanan onboarding",
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              "$step",
-              style: const TextStyle(fontSize: 70, fontWeight: FontWeight.bold),
-            ),
             _buildOnboardingContent(),
-            // Tombol Next
+            const SizedBox(height: 10),
+            Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildDot(1), // Titik untuk step 1
+              _buildDot(2), // Titik untuk step 2
+              _buildDot(3), // Titik untuk step 3
+            ],
+          ),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: nextStep,
               child: Text(step == 3 ? "Mulai Sekarang" : "Next"),
@@ -60,32 +61,42 @@ class _OnboardingViewState extends State<OnboardingView> {
         return Column(
           children: [
             Image.asset(
-              'assets/1.jpeg',
-              height: 200, // Atur tinggi gambar
+              'assets/counter.png',
+              height: 200, 
             ),
             const SizedBox(height: 20),
-            const Text("Selamat Datang di LogBook App!"),
+            const Text("Selamat Datang di Aplikasi Counter Logbook!"),
           ],
         );
       case 2:
         return Column(
           children: [
-            // Contoh menggunakan gambar dari internet
-            Image.asset('assets/2.jpeg', height: 200),
+            Image.asset('assets/6.gif', height: 200),
             const SizedBox(height: 20),
-            const Text("Catat setiap perubahan hitunganmu."),
+            const Text("Hitung setiap aktivitasmu."),
           ],
         );
       case 3:
         return Column(
           children: [
-            Image.asset('assets/3.jpeg', height: 200),
+            Image.asset('assets/5.gif', height: 200),
             const SizedBox(height: 20),
             const Text("Siap dimulai!"),
           ],
-        ); // Kamu juga bisa pakai Icon sebagai pengganti gambar
+        ); 
       default:
         return const SizedBox();
     }
+  }
+  Widget _buildDot(int index) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      height: 10,
+      width: 10,
+      decoration: BoxDecoration(
+        color: step == index ? Colors.blue : Colors.grey,
+        shape: BoxShape.circle,
+      ),
+    );
   }
 }
