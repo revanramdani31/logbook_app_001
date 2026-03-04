@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logbook_app_001/features/logbook/models/log_model.dart';
@@ -41,7 +43,7 @@ class MongoService {
         const Duration(seconds: 15),
         onTimeout: () {
           throw Exception(
-            "Koneksi Timeout. Cek IP Whitelist (0.0.0.0/0) atau Sinyal HP.",
+            "TIMEOUT: Koneksi ke MongoDB Atlas melebihi batas waktu",
           );
         },
       );
@@ -53,13 +55,52 @@ class MongoService {
         source: _source,
         level: 2,
       );
-    } catch (e) {
+    } on SocketException catch (e) {
       await LogHelper.writeLog(
-        "DATABASE: Gagal Koneksi - $e",
+        "DATABASE: SocketException - Tidak ada koneksi internet",
         source: _source,
         level: 1,
       );
-      rethrow;
+      throw Exception("SocketException: Tidak ada koneksi internet - $e");
+    } on TimeoutException {
+      await LogHelper.writeLog(
+        "DATABASE: TimeoutException - Koneksi timeout",
+        source: _source,
+        level: 1,
+      );
+      throw Exception(
+        "TIMEOUT: Server tidak merespons dalam waktu yang ditentukan",
+      );
+    } catch (e) {
+      final errorStr = e.toString().toLowerCase();
+
+      // Deteksi jenis error dan berikan pesan yang jelas
+      if (errorStr.contains('authentication') ||
+          errorStr.contains('credentials')) {
+        await LogHelper.writeLog(
+          "DATABASE: Authentication Failed - Kredensial salah",
+          source: _source,
+          level: 1,
+        );
+        throw Exception("Authentication: Username atau password MongoDB salah");
+      } else if (errorStr.contains('failed host lookup') ||
+          errorStr.contains('connection refused')) {
+        await LogHelper.writeLog(
+          "DATABASE: Connection Refused - Server tidak dapat dijangkau",
+          source: _source,
+          level: 1,
+        );
+        throw Exception(
+          "Connection Refused: MongoDB Atlas tidak dapat dihubungi",
+        );
+      } else {
+        await LogHelper.writeLog(
+          "DATABASE: Gagal Koneksi - $e",
+          source: _source,
+          level: 1,
+        );
+        rethrow;
+      }
     }
   }
 
