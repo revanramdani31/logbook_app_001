@@ -12,6 +12,15 @@
 .swiftpm/
 migrate_working_dir/
 
+# Environment variables (SENSITIVE - contains database credentials)
+.env
+.env.local
+.env.*.local
+
+# Application logs
+logs/
+*.log
+
 # IntelliJ related
 *.iml
 *.ipr
