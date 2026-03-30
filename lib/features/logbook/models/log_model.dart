@@ -1,48 +1,69 @@
-import 'package:mongo_dart/mongo_dart.dart'; // Wajib untuk menggunakan ObjectId
+import 'package:hive/hive.dart';
+import 'package:mongo_dart/mongo_dart.dart' show ObjectId;
 
+part 'log_model.g.dart';
+
+@HiveType(typeId: 0)
 class LogModel {
-  final ObjectId? id; // Tambahkan ini sebagai Primary Key MongoDB
+  @HiveField(0)
+  final String? id; // Disimpan sebagai String di Hive
+
+  @HiveField(1)
   final String title;
-  final String date;
+
+  @HiveField(2)
   final String description;
-  final String category;
+
+  @HiveField(3)
+  final String date;
+
+  @HiveField(4)
+  final String authorId;
+
+  @HiveField(5)
+  final String teamId;
+
+  @HiveField(6, defaultValue: 'Public')
+  final String visibility; // 'Private' atau 'Public'
+
+  @HiveField(7, defaultValue: 'Software')
+  final String category; // Kategori log
 
   LogModel({
-    this.id, // Bersifat opsional karena MongoDB bisa generate otomatis
+    this.id,
     required this.title,
-    required this.date,
     required this.description,
-    required this.category,
+    required this.date,
+    required this.authorId,
+    required this.teamId,
+    this.visibility = 'Public', // Default: Public
+    this.category = 'Software', // Default: Software
   });
 
   // [REVERT] Membongkar BSON (Map) dari Cloud menjadi Object Flutter
   factory LogModel.fromMap(Map<String, dynamic> map) {
-    ObjectId? objectId;
-    if (map['_id'] != null) {
-      if (map['_id'] is ObjectId) {
-        objectId = map['_id'] as ObjectId;
-      } else if (map['_id'] is String) {
-        objectId = ObjectId.fromHexString(map['_id'] as String);
-      }
-    }
-
     return LogModel(
-      id: objectId, // MongoDB menggunakan field '_id'
+      // Konversi ObjectId ke String (oid)
+      id: (map['_id'] as ObjectId?)?.oid,
       title: map['title'] ?? '',
-      date: map['date'] ?? '',
       description: map['description'] ?? '',
-      category: map['category'] ?? '',
+      date: map['date'] ?? '',
+      authorId: map['authorId'] ?? 'unknown_user', // Cegah error null
+      teamId: map['teamId'] ?? 'no_team',
+      visibility: map['visibility'] ?? 'Public', // Default Public
+      category: map['category'] ?? 'Software', // Default Software
     );
   }
 
   // [CONVERT] Membungkus Object ke dalam "Kardus" (BSON) untuk dikirim ke Cloud
-  Map<String, dynamic> toMap() {
-    return {
-      '_id': id ?? ObjectId(), // Gunakan ID yang ada atau buat baru otomatis
-      'title': title,
-      'date': date,
-      'description': description,
-      'category': category,
-    };
-  }
+  Map<String, dynamic> toMap() => {
+    '_id': id != null ? ObjectId.fromHexString(id!) : ObjectId(),
+    'title': title,
+    'description': description,
+    'date': date,
+    'authorId': authorId,
+    'teamId': teamId,
+    'visibility': visibility,
+    'category': category,
+  };
 }

@@ -105,17 +105,19 @@ class MongoService {
   }
 
   /// READ: Mengambil data dari Cloud
-  Future<List<LogModel>> getLogs() async {
+  Future<List<LogModel>> getLogs(String teamId) async {
     try {
       final collection = await _getSafeCollection(); // Gunakan jalur aman
 
       await LogHelper.writeLog(
-        "INFO: Fetching data from Cloud...",
+        "INFO: Fetching data from $teamId ",
         source: _source,
         level: 3,
       );
 
-      final List<Map<String, dynamic>> data = await collection.find().toList();
+      final List<Map<String, dynamic>> data = await collection
+          .find(where.eq('teamId', teamId))
+          .toList();
       return data.map((json) => LogModel.fromMap(json)).toList();
     } catch (e) {
       await LogHelper.writeLog(
@@ -128,16 +130,33 @@ class MongoService {
   }
 
   /// CREATE: Menambahkan data baru
-  Future<void> insertLog(LogModel log) async {
+  Future<LogModel> insertLog(LogModel log) async {
     try {
       final collection = await _getSafeCollection();
-      await collection.insertOne(log.toMap());
+
+      // Generate ObjectId baru untuk document
+      final objectId = ObjectId();
+      final logWithId = LogModel(
+        id: objectId.oid,
+        title: log.title,
+        description: log.description,
+        date: log.date,
+        authorId: log.authorId,
+        teamId: log.teamId,
+        visibility: log.visibility,
+        category: log.category,
+      );
+
+      await collection.insertOne(logWithId.toMap());
 
       await LogHelper.writeLog(
         "SUCCESS: Data '${log.title}' Saved to Cloud",
         source: _source,
         level: 2,
       );
+
+      // Return log dengan id yang sudah di-set
+      return logWithId;
     } catch (e) {
       await LogHelper.writeLog(
         "ERROR: Insert Failed - $e",
@@ -155,7 +174,10 @@ class MongoService {
       if (log.id == null)
         throw Exception("ID Log tidak ditemukan untuk update");
 
-      await collection.replaceOne(where.id(log.id!), log.toMap());
+      await collection.replaceOne(
+        where.id(ObjectId.fromHexString(log.id!)),
+        log.toMap(),
+      );
 
       await LogHelper.writeLog(
         "DATABASE: Update '${log.title}' Berhasil",
