@@ -8,6 +8,8 @@ import 'package:logbook_app_001/features/logbook/log_editor_page.dart';
 import 'package:logbook_app_001/features/auth/login_controller.dart';
 import 'package:logbook_app_001/features/auth/login_view.dart';
 import 'package:logbook_app_001/widgets/empty_state_widget.dart';
+import 'package:logbook_app_001/features/vision/pcd_editor_view.dart';
+import 'package:logbook_app_001/features/vision/vision_view.dart';
 
 class LogView extends StatefulWidget {
   final dynamic currentUser;
@@ -312,6 +314,7 @@ class _LogViewState extends State<LogView> {
             icon: const Icon(Icons.refresh),
             onPressed: () => _controller.loadLogs(widget.currentUser['teamId']),
           ),
+
           // --- TOMBOL LOGOUT BARU ---
           IconButton(
             icon: const Icon(Icons.logout),
@@ -410,12 +413,10 @@ class _LogViewState extends State<LogView> {
             child: ValueListenableBuilder<List<LogModel>>(
               valueListenable: _controller.logsNotifier,
               builder: (context, currentLogs, child) {
-
                 final visibleLogs = _controller.filterVisibleLogs(
                   currentLogs,
                   widget.currentUser['uid'],
                 );
-
 
                 // Gunakan ValueListenableBuilder untuk search query
                 return ValueListenableBuilder<String>(
@@ -470,9 +471,30 @@ class _LogViewState extends State<LogView> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _goToEditor(),
-        child: const Icon(Icons.add),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: 'visionFab',
+            backgroundColor: const Color(0xFF00E5FF),
+            foregroundColor: Colors.black,
+            tooltip: 'Smart-Patrol Vision',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => VisionView()),
+              );
+            },
+            child: const Icon(Icons.camera_alt),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton(
+            heroTag: 'addLogFab',
+            onPressed: () => _goToEditor(),
+            child: const Icon(Icons.add),
+          ),
+        ],
       ),
     );
   }

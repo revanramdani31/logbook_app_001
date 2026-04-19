@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Aplikasi membutuhkan akses kamera untuk inspeksi kerusakan jalan melalui Smart-Patrol Vision.</string>
 </dict>
 </plist>
